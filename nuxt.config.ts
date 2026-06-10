@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['@nuxt/image'],
+  modules: ['@nuxt/image', '@nuxt/fonts'],
   routeRules: {
     '/api/weather': {
       cache: { maxAge: 60 * 60 * 24, swr: true },

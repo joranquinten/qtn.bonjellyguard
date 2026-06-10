@@ -128,38 +128,50 @@ function adjustedLevel(base: number, modifier: number): RiskLevel {
 .forecast-table {
   width: 100%;
   overflow-x: auto;
+  border-radius: 1rem;
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 0.9rem;
 }
 
 thead th {
   text-align: left;
-  padding: 0.6rem 0.75rem;
+  padding: 0.75rem;
+  background: var(--color-lagoon);
+  color: var(--color-cream);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6b7280;
-  border-bottom: 1px solid #e5e7eb;
+  letter-spacing: 0.1em;
+  border-bottom: 3px solid var(--color-ink);
+}
+
+thead th:first-child {
+  border-top-left-radius: 0.85rem;
+}
+
+thead th:last-child {
+  border-top-right-radius: 0.85rem;
 }
 
 .forecast-row {
   cursor: pointer;
-  transition: background 0.15s;
+  background: #fffaf0;
+  transition: background 0.15s, transform 0.15s;
 }
 
 .forecast-row:hover,
 .forecast-row--expanded {
-  background: #f9fafb;
+  background: #f4dfce;
 }
 
 .forecast-row td {
-  padding: 0.75rem;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 0.85rem 0.75rem;
+  border-bottom: 2px solid rgba(5, 7, 6, 0.12);
   vertical-align: middle;
 }
 
@@ -171,20 +183,24 @@ thead th {
 
 .date-weekday {
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 900;
   text-transform: uppercase;
-  color: #9ca3af;
+  letter-spacing: 0.12em;
+  color: var(--color-lagoon);
 }
 
 .date-day {
-  font-weight: 500;
-  color: #111827;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--color-ink);
 }
 
 .forecast-row__chevron {
   text-align: right;
-  color: #9ca3af;
-  font-size: 1.1rem;
+  color: var(--color-ink);
+  font-size: 1.3rem;
+  font-weight: 900;
 }
 
 .forecast-row__chevron span {
@@ -199,31 +215,33 @@ thead th {
 /* Confidence tag */
 .confidence-tag {
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
+  letter-spacing: 0.08em;
+  padding: 0.18rem 0.45rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 999px;
+  box-shadow: 2px 2px 0 rgba(5, 7, 6, 0.22);
 }
 
 .confidence-tag--high {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--color-seafoam);
+  color: var(--color-ink);
 }
 .confidence-tag--medium {
-  background: #fff7ed;
-  color: #c2410c;
+  background: var(--color-rose);
+  color: var(--color-ink);
 }
 .confidence-tag--low {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--color-cream);
+  color: var(--color-ink);
 }
 
 /* Expanded detail */
 .forecast-detail td {
   padding: 0;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: #f6ead9;
+  border-bottom: 2px solid rgba(5, 7, 6, 0.16);
 }
 
 .forecast-detail__inner {
@@ -235,10 +253,10 @@ thead th {
 
 .detail-section h4 {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6b7280;
+  letter-spacing: 0.12em;
+  color: var(--color-lagoon);
   margin: 0 0 0.5rem;
 }
 
@@ -249,35 +267,43 @@ thead th {
 }
 
 .tod-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 0.6rem 0.75rem;
+  background: #fffaf0;
+  border: 2px solid rgba(5, 7, 6, 0.8);
+  border-radius: 0.85rem;
+  padding: 0.7rem 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  box-shadow: 3px 3px 0 rgba(5, 7, 6, 0.16);
 }
 
 .tod-card__label {
   font-size: 0.75rem;
-  font-weight: 600;
-  color: #374151;
+  font-weight: 900;
+  color: var(--color-ink);
 }
 
 .tod-card__reason {
   font-size: 0.7rem;
-  color: #6b7280;
+  color: rgba(5, 7, 6, 0.68);
   line-height: 1.3;
 }
 
 .detail-notes p {
   font-size: 0.8rem;
-  color: #374151;
+  color: rgba(5, 7, 6, 0.82);
   margin: 0 0 0.3rem;
+  line-height: 1.45;
 }
 
 .confidence-note {
-  color: #6b7280 !important;
+  color: rgba(5, 7, 6, 0.62) !important;
   font-style: italic;
+}
+
+@media (max-width: 760px) {
+  table {
+    min-width: 720px;
+  }
 }
 </style>

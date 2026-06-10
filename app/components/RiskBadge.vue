@@ -33,11 +33,14 @@ const label = computed(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.2rem 0.55rem;
+  padding: 0.23rem 0.6rem;
+  border: 2px solid var(--color-ink);
   border-radius: 9999px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
   white-space: nowrap;
+  box-shadow: 2px 2px 0 rgba(5, 7, 6, 0.24);
 }
 
 .risk-badge__dot {
@@ -48,44 +51,44 @@ const label = computed(() => {
 }
 
 .risk-badge__score {
-  opacity: 0.75;
-  font-weight: 400;
+  opacity: 0.72;
+  font-weight: 800;
   font-size: 0.75rem;
 }
 
 /* Low */
 .risk-badge--low {
-  background: #dcfce7;
-  color: #166534;
+  background: #d8f1df;
+  color: #123f26;
 }
 .risk-badge--low .risk-badge__dot {
-  background: #22c55e;
+  background: var(--color-seafoam);
 }
 
 /* Medium */
 .risk-badge--medium {
-  background: #fef9c3;
-  color: #854d0e;
+  background: #f7ddb0;
+  color: #5b3510;
 }
 .risk-badge--medium .risk-badge__dot {
-  background: #eab308;
+  background: #d99225;
 }
 
 /* High */
 .risk-badge--high {
-  background: #fee2e2;
-  color: #991b1b;
+  background: #f0bdc9;
+  color: #5d1022;
 }
 .risk-badge--high .risk-badge__dot {
-  background: #ef4444;
+  background: var(--color-rose);
 }
 
 /* Unknown */
 .risk-badge--unknown {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--color-cream);
+  color: rgba(5, 7, 6, 0.68);
 }
 .risk-badge--unknown .risk-badge__dot {
-  background: #9ca3af;
+  background: rgba(5, 7, 6, 0.42);
 }
 </style>

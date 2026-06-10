@@ -17,22 +17,41 @@ onMounted(() => loadForecast())
 
 <template>
   <main class="app">
-    <header class="app-header">
-      <h1>Bonaire Jelly Forecast</h1>
-      <p class="app-subtitle">Sting risk for the west coast based on lunar cycle and wind conditions</p>
-    </header>
+    <section class="hero" aria-labelledby="page-title">
+      <div class="hero__copy">
+        <p class="hero__eyebrow">West Coast Watch</p>
+        <h1 id="page-title">Bonaire Jelly Forecast</h1>
+        <p class="app-subtitle">
+          A moonlit, wind-whistled sting forecast for Bonaire's leeward shore.
+        </p>
+      </div>
+      <div class="hero__mascot">
+        <NuxtImg
+          src="/images/mascott.webp"
+          alt="Cartoon jellyfish forecast mascot"
+          width="360"
+          height="360"
+          densities="x1 x2"
+          sizes="180px sm:220px md:280px"
+          loading="eager"
+        />
+      </div>
+    </section>
 
     <!-- Date range controls -->
     <section class="controls">
-      <div class="controls__dates">
-        <label>
-          <span>From</span>
-          <input type="date" v-model="startDate" :min="todayStr" />
-        </label>
-        <label>
-          <span>To</span>
-          <input type="date" v-model="endDate" :min="startDate" />
-        </label>
+      <div>
+        <p class="section-kicker">Pick your tide-card dates</p>
+        <div class="controls__dates">
+          <label>
+            <span>From</span>
+            <input type="date" v-model="startDate" :min="todayStr" />
+          </label>
+          <label>
+            <span>To</span>
+            <input type="date" v-model="endDate" :min="startDate" />
+          </label>
+        </div>
       </div>
       <button class="btn-primary" :disabled="loading" @click="loadForecast">
         {{ loading ? 'Loading…' : 'Show forecast' }}
@@ -56,64 +75,149 @@ onMounted(() => loadForecast())
     <div v-else-if="!loading && !error" class="empty-state">
       <p>Select a date range and load the forecast to see jelly risk.</p>
     </div>
-    <footer class="footer">This webapp was built by <NuxtLink href="https://bistaweb.com" title="BistaWeb: for your next web development project. Based on Bonaire." prefetch>BistaWeb.com</NuxtLink></footer>
+    <footer class="footer">
+      This webapp was built by
+      <NuxtLink href="https://bistaweb.com" title="BistaWeb: for your next web development project. Based on Bonaire." prefetch>BistaWeb.com</NuxtLink>
+    </footer>
   </main>
 </template>
 
 <style>
 /* Global reset */
 *, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --color-lagoon: #1E6083;
+  --color-seafoam: #68AD9C;
+  --color-rose: #D29EAD;
+  --color-cream: #F1EBDF;
+  --color-ink: #050706;
+  --font-display: 'Rye', Georgia, serif;
+  --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+html {
+  min-height: 100%;
+  background: var(--color-lagoon);
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #f9fafb;
-  color: #111827;
+  min-height: 100%;
+  font-family: var(--font-body);
+  background:
+    radial-gradient(circle at top left, rgba(104, 173, 156, 0.5), transparent 34rem),
+    linear-gradient(160deg, var(--color-lagoon), #123d54);
+  color: var(--color-ink);
+}
+
+button,
+input {
+  font: inherit;
 }
 </style>
 
 <style scoped>
 .app {
-  max-width: 860px;
-  background: #f8f8f8;
-  border-radius: 0.4rem;
-  height: 90vh;
-  margin: 5vh auto;
-  padding: 2rem 1rem;
+  width: min(1120px, calc(100% - 2rem));
+  min-height: calc(100svh - 2rem);
+  margin: 1rem auto;
+  padding: clamp(1rem, 3vw, 2rem);
   display: flex;
   flex-direction: column;
+  gap: 1.25rem;
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 32%);
+  align-items: center;
+  gap: clamp(1rem, 4vw, 3rem);
   overflow: hidden;
+  background:
+    radial-gradient(circle at 82% 16%, rgba(210, 158, 173, 0.9), transparent 8rem),
+    linear-gradient(135deg, var(--color-cream), #fff8ec);
+  border: 4px solid var(--color-ink);
+  border-radius: 2rem;
+  box-shadow: 10px 10px 0 rgba(5, 7, 6, 0.9);
+  padding: clamp(1.5rem, 5vw, 3.5rem);
 }
 
-.app-header {
-  flex: 0 0 auto;
-  margin-bottom: 2rem;
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 1rem;
+  border: 2px dashed rgba(5, 7, 6, 0.35);
+  border-radius: 1.4rem;
+  pointer-events: none;
 }
 
-.app-header h1 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin: 0 0 0.25rem;
+.hero__copy,
+.hero__mascot {
+  position: relative;
+}
+
+.hero__eyebrow,
+.section-kicker {
+  margin: 0 0 0.55rem;
+  color: var(--color-lagoon);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  max-width: 12ch;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 7vw, 5.8rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  color: var(--color-ink);
+  text-shadow: 4px 4px 0 var(--color-seafoam);
+  margin: 0 0 1rem;
 }
 
 .app-subtitle {
-  font-size: 0.9rem;
-  color: #6b7280;
+  max-width: 34rem;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  font-weight: 800;
+  line-height: 1.45;
+  color: #234250;
   margin: 0;
+}
+
+.hero__mascot {
+  display: grid;
+  place-items: center;
+}
+
+.hero__mascot img {
+  width: min(100%, 280px);
+  height: auto;
+  filter: drop-shadow(8px 10px 0 rgba(5, 7, 6, 0.25));
+  transform: rotate(3deg);
 }
 
 /* Controls */
 .controls {
   display: flex;
+  justify-content: space-between;
   align-items: flex-end;
-  gap: 1rem;
+  gap: 1.25rem;
   flex-wrap: wrap;
-  flex: 0 0 auto;
-  margin-bottom: 2rem;
+  background: rgba(241, 235, 223, 0.94);
+  border: 3px solid var(--color-ink);
+  border-radius: 1.4rem;
+  box-shadow: 7px 7px 0 rgba(5, 7, 6, 0.75);
+  padding: 1rem;
 }
 
 .controls__dates {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.8rem;
   flex-wrap: wrap;
 }
 
@@ -124,37 +228,42 @@ body {
 }
 
 .controls label span {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #6b7280;
+  letter-spacing: 0.12em;
+  color: var(--color-lagoon);
 }
 
 .controls input[type="date"] {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  background: white;
-  color: #111827;
+  min-height: 2.8rem;
+  padding: 0.55rem 0.8rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 0.8rem;
+  background: #fffaf0;
+  color: var(--color-ink);
+  box-shadow: inset 0 -3px 0 rgba(104, 173, 156, 0.25);
 }
 
 .btn-primary {
-  padding: 0.55rem 1.25rem;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  min-height: 2.8rem;
+  padding: 0.65rem 1.35rem;
+  background: var(--color-rose);
+  color: var(--color-ink);
+  border: 2px solid var(--color-ink);
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 900;
   cursor: pointer;
-  transition: background 0.15s;
+  box-shadow: 4px 4px 0 var(--color-ink);
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
   align-self: flex-end;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: var(--color-seafoam);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--color-ink);
 }
 
 .btn-primary:disabled {
@@ -164,13 +273,13 @@ body {
 
 /* Error */
 .error-banner {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
+  background: #fff0f2;
+  color: #6d1628;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 1rem;
   font-size: 0.9rem;
-  flex: 0 0 auto;
-  margin-bottom: 1.5rem;
+  font-weight: 800;
 }
 
 .results {
@@ -179,13 +288,18 @@ body {
   overflow: auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  background: rgba(241, 235, 223, 0.96);
+  border: 3px solid var(--color-ink);
+  border-radius: 1.4rem;
+  box-shadow: 7px 7px 0 rgba(5, 7, 6, 0.75);
+  padding: clamp(0.75rem, 2vw, 1.25rem);
 }
 
 /* Results */
 .results__legend {
-  font-size: 0.75rem;
-  color: #9ca3af;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: rgba(5, 7, 6, 0.65);
   margin-top: 0.75rem;
   text-align: center;
 }
@@ -198,22 +312,70 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: #9ca3af;
-  font-size: 0.95rem;
+  background: rgba(241, 235, 223, 0.9);
+  border: 3px dashed rgba(5, 7, 6, 0.45);
+  border-radius: 1.4rem;
+  color: rgba(5, 7, 6, 0.72);
+  font-size: 1rem;
+  font-weight: 800;
+  padding: 2rem;
 }
 
 .footer {
-  font-size: 0.72rem;
-  color: #333;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--color-cream);
   text-align: center;
 
   a {
-    color: #111;
+    color: var(--color-cream);
     text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
   }
 
   a:hover, a:focus {
-    color: #000;
+    color: var(--color-rose);
+  }
+}
+
+@media (max-width: 720px) {
+  .app {
+    width: min(100% - 1rem, 1120px);
+    min-height: calc(100svh - 1rem);
+    margin: 0.5rem auto;
+    padding: 0.75rem;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+    border-radius: 1.4rem;
+    box-shadow: 6px 6px 0 rgba(5, 7, 6, 0.9);
+  }
+
+  .hero h1,
+  .app-subtitle {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero__mascot {
+    order: -1;
+  }
+
+  .hero__mascot img {
+    width: min(58vw, 190px);
+  }
+
+  .controls,
+  .controls__dates {
+    display: grid;
+    width: 100%;
+  }
+
+  .btn-primary {
+    width: 100%;
   }
 }
 </style>
