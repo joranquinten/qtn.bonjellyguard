@@ -75,47 +75,25 @@ onMounted(() => loadForecast())
     <div v-else-if="!loading && !error" class="empty-state">
       <p>Select a date range and load the forecast to see jelly risk.</p>
     </div>
+
+    <section class="safety-callout" aria-label="Jellyfish sting safety">
+      <div>
+        <p class="section-kicker">Swim Prepared</p>
+        <p class="safety-callout__text">
+          Learn how to lower your sting risk and what to do if someone gets stung.
+        </p>
+      </div>
+      <NuxtLink to="/safety" class="btn-primary safety-callout__link">
+        Sting safety guide
+      </NuxtLink>
+    </section>
+
     <footer class="footer">
       This webapp was built by
       <NuxtLink href="https://bistaweb.com" title="BistaWeb: for your next web development project. Based on Bonaire." prefetch>BistaWeb.com</NuxtLink>
     </footer>
   </main>
 </template>
-
-<style>
-/* Global reset */
-*, *::before, *::after { box-sizing: border-box; }
-
-:root {
-  --color-lagoon: #1E6083;
-  --color-seafoam: #68AD9C;
-  --color-rose: #D29EAD;
-  --color-cream: #F1EBDF;
-  --color-ink: #050706;
-  --font-display: 'Rye', Georgia, serif;
-  --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-html {
-  min-height: 100%;
-  background: var(--color-lagoon);
-}
-
-body {
-  margin: 0;
-  min-height: 100%;
-  font-family: var(--font-body);
-  background:
-    radial-gradient(circle at top left, rgba(104, 173, 156, 0.5), transparent 34rem),
-    linear-gradient(160deg, var(--color-lagoon), #123d54);
-  color: var(--color-ink);
-}
-
-button,
-input {
-  font: inherit;
-}
-</style>
 
 <style scoped>
 .app {
@@ -199,6 +177,33 @@ input {
   height: auto;
   filter: drop-shadow(8px 10px 0 rgba(5, 7, 6, 0.25));
   transform: rotate(3deg);
+}
+
+.safety-callout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: rgba(241, 235, 223, 0.94);
+  border: 3px solid var(--color-ink);
+  border-radius: 1.4rem;
+  box-shadow: 7px 7px 0 rgba(5, 7, 6, 0.75);
+  padding: 1rem;
+}
+
+.safety-callout__text {
+  margin: 0;
+  color: #234250;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.safety-callout__link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
 }
 
 /* Controls */
@@ -369,6 +374,7 @@ input {
   }
 
   .controls,
+  .safety-callout,
   .controls__dates {
     display: grid;
     width: 100%;

@@ -17,6 +17,41 @@
   </div>
 </template>
 
+<style>
+/* Global reset */
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --color-lagoon: #1E6083;
+  --color-seafoam: #68AD9C;
+  --color-rose: #D29EAD;
+  --color-cream: #F1EBDF;
+  --color-ink: #050706;
+  --font-display: 'Rye', Georgia, serif;
+  --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+html {
+  min-height: 100%;
+  background: var(--color-lagoon);
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font-body);
+  background:
+    radial-gradient(circle at top left, rgba(104, 173, 156, 0.5), transparent 34rem),
+    linear-gradient(160deg, var(--color-lagoon), #123d54);
+  color: var(--color-ink);
+}
+
+button,
+input {
+  font: inherit;
+}
+</style>
+
 <style scoped>
 .background-container {
   position: fixed;
