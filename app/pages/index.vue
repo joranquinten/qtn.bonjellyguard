@@ -20,9 +20,9 @@ onMounted(() => loadForecast())
     <section class="hero" aria-labelledby="page-title">
       <div class="hero__copy">
         <p class="hero__eyebrow">West Coast Watch</p>
-        <h1 id="page-title">Bonaire Jelly Forecast</h1>
+        <h1 id="page-title">Bon Jelly Guard</h1>
         <p class="app-subtitle">
-          A moonlit, wind-whistled sting forecast for Bonaire's leeward shore.
+          Your sting forecast for Bonaire's leeward shore.
         </p>
       </div>
       <div class="hero__mascot">
