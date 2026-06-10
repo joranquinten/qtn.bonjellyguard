@@ -5,6 +5,8 @@
 Predicts jellyfish sting risk on Bonaire's west coast for a user-selected date range.
 Returns a day-by-day risk breakdown split by jellyfish type and time of day.
 
+Important: Every architectural, structural change needs to be added as documentation to this file!
+
 ---
 
 ## Stack
