@@ -56,6 +56,7 @@ onMounted(() => loadForecast())
     <div v-else-if="!loading && !error" class="empty-state">
       <p>Select a date range and load the forecast to see jelly risk.</p>
     </div>
+    <footer class="footer">This webapp was built by <NuxtLink href="https://bistaweb.com" title="BistaWeb: for your next web development project. Based on Bonaire." prefetch>BistaWeb.com</NuxtLink></footer>
   </main>
 </template>
 
@@ -199,5 +200,20 @@ body {
   text-align: center;
   color: #9ca3af;
   font-size: 0.95rem;
+}
+
+.footer {
+  font-size: 0.72rem;
+  color: #333;
+  text-align: center;
+
+  a {
+    color: #111;
+    text-decoration: underline;
+  }
+
+  a:hover, a:focus {
+    color: #000;
+  }
 }
 </style>
