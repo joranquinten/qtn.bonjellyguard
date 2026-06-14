@@ -72,7 +72,8 @@ Window: **8–12 days post full moon**, 2–4 day active period.
 ### Siphonophores (wind-driven)
 
 Easterly winds (45–135°) push man-o-war toward Bonaire's leeward (west) coast.
-Risk scales with wind speed. No forecast beyond 16 days → shown as "unknown".
+Risk scales with wind speed in km/h, with user-facing wind values displayed as knots.
+No forecast beyond 16 days → shown as "unknown".
 
 ### Time of day (tide-informed modifiers on box jelly score)
 
@@ -141,7 +142,7 @@ interface RiskInput {
   daysSinceFullMoon: number | null
   isFullMoon: boolean
   windDirection: number | null
-  windSpeed: number | null
+  windSpeed: number | null // km/h, displayed as knots in UI copy
   isEasterly: boolean | null
   windConfidence: DataConfidence
   dawnTideState: TideState

@@ -51,7 +51,7 @@ export default defineEventHandler(async (event) => {
   maxForecastDate.setDate(maxForecastDate.getDate() + 16)
 
   const clippedEnd = new Date(endDate) > maxForecastDate
-    ? maxForecastDate.toISOString().split('T')[0]
+    ? maxForecastDate.toISOString().slice(0, 10)
     : endDate
 
   // Build result map with low-confidence placeholders for all dates first
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
   const end = new Date(endDate)
 
   while (current <= end) {
-    const dateStr = current.toISOString().split('T')[0]
+    const dateStr = current.toISOString().slice(0, 10)
     result[dateStr] = {
       date: dateStr,
       windDirection: null,
@@ -92,10 +92,12 @@ export default defineEventHandler(async (event) => {
 
     for (let i = 0; i < dates.length; i++) {
       const date = dates[i]
-      if (result[date]) {
+      const direction = directions[i]
+
+      if (date && result[date]) {
         result[date].windDirection = directions[i] ?? null
         result[date].windSpeed = speeds[i] ?? null
-        result[date].isEasterly = directions[i] != null ? isEasterlyWind(directions[i]) : null
+        result[date].isEasterly = direction != null ? isEasterlyWind(direction) : null
       }
     }
   } catch (e) {

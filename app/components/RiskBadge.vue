@@ -15,7 +15,7 @@ const label = computed(() => {
     case 'medium': return 'Medium'
     case 'low': return 'Low'
     case 'unknown': return 'Unknown'
-    default: return '—'
+    default: return '·'
   }
 })
 </script>

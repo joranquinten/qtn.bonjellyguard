@@ -85,6 +85,14 @@ function calcBoxJellyScore(daysSinceFullMoon: number | null): number {
 // Easterly winds push man-o-war toward Bonaire's west coast (dive sites)
 // Higher wind speed = more risk
 
+const KMH_TO_KNOTS = 0.539957
+
+function formatWindSpeedKnots(windSpeedKmh: number | null): string {
+  if (windSpeedKmh === null) return '?'
+
+  return String(Math.round(windSpeedKmh * KMH_TO_KNOTS))
+}
+
 function calcSiphonophoreScore(
   isEasterly: boolean | null,
   windSpeed: number | null,
@@ -141,14 +149,14 @@ function dawnRiskDetails(dawnTideState: TideState): { modifier: number; reason: 
   if (dawnTideState === 'falling') {
     return {
       modifier: 1.4,
-      reason: 'Peak risk — tide falling at dawn can trap jellies inshore'
+      reason: 'Peak risk · tide falling at dawn can trap jellies inshore'
     }
   }
 
   if (dawnTideState === 'high') {
     return {
       modifier: 1.35,
-      reason: 'Peak risk — high tide around dawn favors inshore jelly presence'
+      reason: 'Peak risk · high tide around dawn favors inshore jelly presence'
     }
   }
 
@@ -168,7 +176,7 @@ function dawnRiskDetails(dawnTideState: TideState): { modifier: number; reason: 
 
   return {
     modifier: 1.2,
-    reason: 'Elevated dawn activity — tide estimate unavailable'
+    reason: 'Elevated dawn activity · tide estimate unavailable'
   }
 }
 
@@ -176,24 +184,24 @@ function duskRiskDetails(duskTideState: TideState): { modifier: number; reason: 
   if (duskTideState === 'low') {
     return {
       modifier: 1.3,
-      reason: 'Elevated — low tide near dusk can concentrate jellies near shore'
+      reason: 'Elevated · low tide near dusk can concentrate jellies near shore'
     }
   }
 
   return {
     modifier: 1.2,
     reason: duskTideState === 'unknown'
-      ? 'Elevated — crepuscular activity window; tide estimate unavailable'
-      : `Elevated — crepuscular activity window; tide is ${duskTideState}`
+      ? 'Elevated · crepuscular activity window; tide estimate unavailable'
+      : `Elevated · crepuscular activity window; tide is ${duskTideState}`
   }
 }
 
 function tideReason(input: RiskInput): string {
   if (input.tideConfidence === 'low') {
-    return 'Tide estimate unavailable — using baseline dawn/dusk modifiers'
+    return 'Tide estimate unavailable · using baseline dawn/dusk modifiers'
   }
 
-  return `Tide estimate available — dawn tide is ${input.dawnTideState}, dusk tide is ${input.duskTideState}. ${input.tideSourceNote}`
+  return `Tide estimate available · dawn tide is ${input.dawnTideState}, dusk tide is ${input.duskTideState}. ${input.tideSourceNote}`
 }
 
 function getTimeOfDayRisks(
@@ -225,7 +233,7 @@ function getTimeOfDayRisks(
       'day',
       boxJellyScore,
       0.6,
-      'Lower activity — box jellies retreat to deeper water'
+      'Lower activity · box jellies retreat to deeper water'
     ),
     buildTimeOfDayRisk(
       'dusk',
@@ -237,7 +245,7 @@ function getTimeOfDayRisks(
       'night',
       boxJellyScore,
       1.0,
-      'Moderate — active spawning migration occurs before moonrise'
+      'Moderate · active spawning migration occurs before moonrise'
     ),
   ]
 }
@@ -251,9 +259,9 @@ function scoreToLevel(score: number): RiskLevel {
 }
 
 function confidenceNote(confidence: DataConfidence): string {
-  if (confidence === 'high') return 'Wind forecast available — high accuracy'
-  if (confidence === 'medium') return 'Extended forecast (8–16 days) — moderate accuracy'
-  return 'No wind forecast available — lunar risk only, siphonophore risk unknown'
+  if (confidence === 'high') return 'Wind forecast available · high accuracy'
+  if (confidence === 'medium') return 'Extended forecast (8–16 days) · moderate accuracy'
+  return 'No wind forecast available · lunar risk only, siphonophore risk unknown'
 }
 
 // ─── Main export ──────────────────────────────────────────────────────────────
@@ -284,10 +292,10 @@ export function useRiskCalculator() {
         : 'Full moon reference not available'
 
       const siphonophoreReason = siphonophoreUnknown
-        ? 'No forecast data — wind-driven risk unknown'
+        ? 'No forecast data · wind-driven risk unknown'
         : input.isEasterly
-          ? `Easterly winds (${input.windSpeed ?? '?'} km/h) pushing toward west coast`
-          : `Wind not easterly — low shore risk`
+          ? `Easterly winds (${formatWindSpeedKnots(input.windSpeed)} knots) pushing toward west coast`
+          : `Wind not easterly · low shore risk`
 
       return {
         date: input.date,

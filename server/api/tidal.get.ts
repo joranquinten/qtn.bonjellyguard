@@ -195,7 +195,7 @@ export default defineEventHandler(async (event) => {
         duskTideState: tideStateAtHour(points, DUSK_HOUR),
         confidence: points.length > 0 ? 'high' : 'low',
         sourceNote: points.length > 0
-          ? 'Open-Meteo Marine sea-level estimate; not for navigation'
+          ? 'Open-Meteo Marine sea-level estimate'
           : 'Tide forecast unavailable'
       }
     }
