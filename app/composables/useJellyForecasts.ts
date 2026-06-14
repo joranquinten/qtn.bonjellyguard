@@ -11,7 +11,7 @@ export interface ForecastState {
 }
 
 function toISODate(date: Date): string {
-  return date.toISOString().split('T')[0]
+  return date.toISOString().slice(0, 10)
 }
 
 function defaultDateRange(): { start: string; end: string } {
@@ -20,6 +20,34 @@ function defaultDateRange(): { start: string; end: string } {
   const end = new Date(today)
   end.setDate(end.getDate() + 6)  // 7-day default
   return { start: toISODate(today), end: toISODate(end) }
+}
+
+const MS_PER_DAY = 86400000
+const SYNODIC_MONTH_DAYS = 29.530588853
+const KNOWN_FULL_MOON_MS = Date.UTC(2000, 0, 21, 4, 40)
+
+function modulo(value: number, divisor: number): number {
+  return ((value % divisor) + divisor) % divisor
+}
+
+function dateToUtcNoon(date: string): number {
+  const [year, month, day] = date.split('-').map(Number)
+
+  if (!year || !month || !day) return Date.now()
+
+  return Date.UTC(year, month - 1, day, 12)
+}
+
+function estimateDaysSinceFullMoon(date: string): number {
+  const elapsedDays = (dateToUtcNoon(date) - KNOWN_FULL_MOON_MS) / MS_PER_DAY
+
+  return Math.floor(modulo(elapsedDays, SYNODIC_MONTH_DAYS))
+}
+
+function normalizeDaysSinceFullMoon(moon: any): number {
+  return typeof moon.daysSinceFullMoon === 'number'
+    ? moon.daysSinceFullMoon
+    : estimateDaysSinceFullMoon(moon.date)
 }
 
 export function useJellyForecast() {
@@ -66,7 +94,7 @@ export function useJellyForecast() {
 
         return {
           date: moon.date,
-          daysSinceFullMoon: moon.daysSinceFullMoon,
+          daysSinceFullMoon: normalizeDaysSinceFullMoon(moon),
           isFullMoon: moon.isFullMoon,
           windDirection: weather?.windDirection ?? null,
           windSpeed: weather?.windSpeed ?? null,

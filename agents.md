@@ -21,7 +21,7 @@ Important: Every architectural, structural change needs to be added as documenta
 
 ```
 server/api/
-  moon.get.ts       → Fetches moon phase per day (FarmsenseMoon API, no key)
+  moon.get.ts       → Fetches moon phase from Open-Meteo; falls back to a local lunar-cycle estimate
   weather.get.ts    → Fetches wind data for Bonaire (Open-Meteo, no key)
   tidal.get.ts      → Fetches sea-level tide signal for Bonaire (Open-Meteo Marine, no key)
 
@@ -43,8 +43,8 @@ pages/
 
 | API | Purpose | Key required | Limit |
 |-----|---------|-------------|-------|
-| [FarmsenseMoon](https://api.farmsense.net/v1/moonphases/) | Moon phase per unix timestamp | No | Unknown |
 | [Open-Meteo](https://api.open-meteo.com/v1/forecast) | Wind direction + speed for Bonaire | No | Free tier |
+| [Open-Meteo](https://api.open-meteo.com/v1/forecast) | Daily moon phase for the forecast window | No | Free tier |
 | [Open-Meteo Marine](https://marine-api.open-meteo.com/v1/marine) | Hourly sea-level tide signal | No | Free tier |
 
 **Bonaire coordinates used:** `lat: 12.1696, lng: -68.2837` (west coast)
@@ -56,6 +56,10 @@ pages/
 ### Box jellyfish (lunar-driven)
 
 Based on research for *Alatina alata* (Hawaii) applied to Bonaire:
+
+Days since full moon are derived from Open-Meteo's daily `moon_phase` forecast.
+For dates outside Open-Meteo's forecast window, the route falls back to a local
+synodic-month estimate so the risk model still has a full-moon reference.
 
 | Days since full moon | Score |
 |---------------------|-------|
@@ -139,7 +143,7 @@ type DataConfidence = 'high' | 'medium' | 'low'
 
 interface RiskInput {
   date: string
-  daysSinceFullMoon: number | null
+  daysSinceFullMoon: number
   isFullMoon: boolean
   windDirection: number | null
   windSpeed: number | null // km/h, displayed as knots in UI copy
@@ -182,7 +186,7 @@ interface TimeOfDayRisk {
 
 ## Known limitations / future work
 
-- Moon phase data from FarmsenseMoon may need verification against a second source
+- Lunar cycle timing falls back to an approximate local estimate outside Open-Meteo's forecast window
 - Open-Meteo Marine tide data is approximate and not suitable for navigation
 - No historical validation against actual Bonaire jellyfish sighting data
 - Caching on server routes not yet implemented — add `useStorage` or Nitro cache layer

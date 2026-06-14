@@ -10,7 +10,7 @@ export type TideState = 'rising' | 'falling' | 'high' | 'low' | 'unknown'
 
 export interface RiskInput {
   date: string
-  daysSinceFullMoon: number | null
+  daysSinceFullMoon: number
   isFullMoon: boolean
   windDirection: number | null       // degrees
   windSpeed: number | null           // km/h
@@ -64,9 +64,7 @@ export interface DayRisk {
 // Based on research: peak activity 8–12 days post full moon, window 2–4 days
 // Highest risk: days 9–10. Elevated: days 8–12. Low outside window.
 
-function calcBoxJellyScore(daysSinceFullMoon: number | null): number {
-  if (daysSinceFullMoon === null) return 20  // unknown = low baseline
-
+function calcBoxJellyScore(daysSinceFullMoon: number): number {
   const d = daysSinceFullMoon
 
   if (d < 0) return 5                           // before this cycle's full moon
@@ -287,9 +285,7 @@ export function useRiskCalculator() {
       const maxTimeOfDayBoxJellyScore = Math.max(...timeOfDayRisks.map((tod) => tod.boxJellyScore))
       const overallScore = Math.min(100, Math.max(maxTimeOfDayBoxJellyScore, siphonophoreScore))
 
-      const boxJellyReason = input.daysSinceFullMoon !== null
-        ? `Day ${input.daysSinceFullMoon} after last full moon`
-        : 'Full moon reference not available'
+      const boxJellyReason = `Day ${input.daysSinceFullMoon} after last full moon`
 
       const siphonophoreReason = siphonophoreUnknown
         ? 'No forecast data · wind-driven risk unknown'
