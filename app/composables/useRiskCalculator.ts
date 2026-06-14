@@ -6,6 +6,7 @@
 export type RiskLevel = 'low' | 'medium' | 'high'
 export type TimeOfDay = 'dawn' | 'day' | 'dusk' | 'night'
 export type DataConfidence = 'high' | 'medium' | 'low'
+export type TideState = 'rising' | 'falling' | 'high' | 'low' | 'unknown'
 
 export interface RiskInput {
   date: string
@@ -15,7 +16,10 @@ export interface RiskInput {
   windSpeed: number | null           // km/h
   isEasterly: boolean | null
   windConfidence: DataConfidence
-  // Future: tidalState, dawnTideState
+  dawnTideState: TideState
+  duskTideState: TideState
+  tideConfidence: 'high' | 'low'
+  tideSourceNote: string
 }
 
 export interface TimeOfDayRisk {
@@ -49,6 +53,7 @@ export interface DayRisk {
 
   // Time-of-day breakdown
   timeOfDayRisks: TimeOfDayRisk[]
+  tideReason: string
 
   // Data confidence (driven by weather forecast availability)
   confidence: DataConfidence
@@ -112,8 +117,7 @@ function hazardToLikelihood(hazardScore: number): number {
 }
 
 // ─── Time of Day Modifiers ────────────────────────────────────────────────────
-// Static rules based on crepuscular activity pattern + tidal note
-// When tidal data is available, dawn modifier should factor in receding tide
+// Crepuscular activity is adjusted with tide state where marine data is available.
 
 function buildTimeOfDayRisk(
   timeOfDay: TimeOfDay,
@@ -133,7 +137,70 @@ function buildTimeOfDayRisk(
   }
 }
 
-function getTimeOfDayRisks(boxJellyScore: number): TimeOfDayRisk[] {
+function dawnRiskDetails(dawnTideState: TideState): { modifier: number; reason: string } {
+  if (dawnTideState === 'falling') {
+    return {
+      modifier: 1.4,
+      reason: 'Peak risk — tide falling at dawn can trap jellies inshore'
+    }
+  }
+
+  if (dawnTideState === 'high') {
+    return {
+      modifier: 1.35,
+      reason: 'Peak risk — high tide around dawn favors inshore jelly presence'
+    }
+  }
+
+  if (dawnTideState === 'rising') {
+    return {
+      modifier: 1.15,
+      reason: 'Elevated dawn activity, but tide is still rising'
+    }
+  }
+
+  if (dawnTideState === 'low') {
+    return {
+      modifier: 1.0,
+      reason: 'Dawn activity window, but low tide reduces inshore trapping signal'
+    }
+  }
+
+  return {
+    modifier: 1.2,
+    reason: 'Elevated dawn activity — tide estimate unavailable'
+  }
+}
+
+function duskRiskDetails(duskTideState: TideState): { modifier: number; reason: string } {
+  if (duskTideState === 'low') {
+    return {
+      modifier: 1.3,
+      reason: 'Elevated — low tide near dusk can concentrate jellies near shore'
+    }
+  }
+
+  return {
+    modifier: 1.2,
+    reason: duskTideState === 'unknown'
+      ? 'Elevated — crepuscular activity window; tide estimate unavailable'
+      : `Elevated — crepuscular activity window; tide is ${duskTideState}`
+  }
+}
+
+function tideReason(input: RiskInput): string {
+  if (input.tideConfidence === 'low') {
+    return 'Tide estimate unavailable — using baseline dawn/dusk modifiers'
+  }
+
+  return `Tide estimate available — dawn tide is ${input.dawnTideState}, dusk tide is ${input.duskTideState}. ${input.tideSourceNote}`
+}
+
+function getTimeOfDayRisks(
+  boxJellyScore: number,
+  dawnTideState: TideState,
+  duskTideState: TideState
+): TimeOfDayRisk[] {
   if (boxJellyScore < 20) {
     // Low lunar risk — time of day barely matters
     return [
@@ -144,13 +211,15 @@ function getTimeOfDayRisks(boxJellyScore: number): TimeOfDayRisk[] {
     ]
   }
 
+  const dawnRisk = dawnRiskDetails(dawnTideState)
+  const duskRisk = duskRiskDetails(duskTideState)
+
   return [
     buildTimeOfDayRisk(
       'dawn',
       boxJellyScore,
-      1.4,
-      'Peak risk — high tide receding at dawn pushes jellies inshore'
-      // TODO: refine with real tidal data
+      dawnRisk.modifier,
+      dawnRisk.reason
     ),
     buildTimeOfDayRisk(
       'day',
@@ -161,8 +230,8 @@ function getTimeOfDayRisks(boxJellyScore: number): TimeOfDayRisk[] {
     buildTimeOfDayRisk(
       'dusk',
       boxJellyScore,
-      1.2,
-      'Elevated — crepuscular activity window'
+      duskRisk.modifier,
+      duskRisk.reason
     ),
     buildTimeOfDayRisk(
       'night',
@@ -202,7 +271,11 @@ export function useRiskCalculator() {
       const siphonophoreScore = siphonophoreRaw === -1 ? 0 : siphonophoreRaw
       const siphonophoreUnknown = siphonophoreRaw === -1
 
-      const timeOfDayRisks = getTimeOfDayRisks(boxJellyScore)
+      const timeOfDayRisks = getTimeOfDayRisks(
+        boxJellyScore,
+        input.dawnTideState,
+        input.duskTideState
+      )
       const maxTimeOfDayBoxJellyScore = Math.max(...timeOfDayRisks.map((tod) => tod.boxJellyScore))
       const overallScore = Math.min(100, Math.max(maxTimeOfDayBoxJellyScore, siphonophoreScore))
 
@@ -230,6 +303,7 @@ export function useRiskCalculator() {
         overallLevel: scoreToLevel(overallScore),
         overallLikelihood: hazardToLikelihood(overallScore),
         timeOfDayRisks,
+        tideReason: tideReason(input),
         confidence: input.windConfidence,
         confidenceNote: confidenceNote(input.windConfidence)
       }

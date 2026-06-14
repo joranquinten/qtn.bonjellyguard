@@ -101,6 +101,7 @@ function capitalize(s: string): string {
                 <!-- Notes -->
                 <div class="detail-section detail-notes">
                   <p><strong>Box jelly:</strong> {{ day.boxJellyReason }}</p>
+                  <p><strong>Tides:</strong> {{ day.tideReason }}</p>
                   <p><strong>Siphonophores:</strong> {{ day.siphonophoreReason }}</p>
                   <p class="confidence-note">ⓘ {{ day.confidenceNote }}</p>
                 </div>

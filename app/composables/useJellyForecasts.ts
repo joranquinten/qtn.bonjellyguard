@@ -2,7 +2,7 @@
 // Orchestrates API calls and merges data into RiskInput[] for the calculator.
 
 import { ref, computed } from 'vue'
-import { useRiskCalculator, type DayRisk, type RiskInput, type DataConfidence } from './useRiskCalculator'
+import { useRiskCalculator, type DayRisk, type RiskInput, type DataConfidence, type TideState } from './useRiskCalculator'
 
 export interface ForecastState {
   loading: boolean
@@ -41,11 +41,11 @@ export function useJellyForecast() {
     days.value = []
 
     try {
-      // Parallel fetch — tidal stub included for future wiring
-      const [moonData, weatherData] = await Promise.all([
+      // Parallel fetch — moon, wind, and tide signals stay independent until model merge.
+      const [moonData, weatherData, tidalData] = await Promise.all([
         $fetch<any[]>(`/api/moon?start=${start}&end=${end}`),
         $fetch<any[]>(`/api/weather?start=${start}&end=${end}`),
-        // Tidal: $fetch(`/api/tidal?start=${start}&end=${end}`) — add when ready
+        $fetch<any[]>(`/api/tidal?start=${start}&end=${end}`),
       ])
 
       // Index weather by date for easy lookup
@@ -54,9 +54,16 @@ export function useJellyForecast() {
         weatherByDate[w.date] = w
       }
 
+      const tideByDate: Record<string, any> = {}
+      for (const tide of tidalData) {
+        tideByDate[tide.date] = tide
+      }
+
       // Merge into RiskInput[]
       const inputs: RiskInput[] = moonData.map((moon) => {
         const weather = weatherByDate[moon.date]
+        const tide = tideByDate[moon.date]
+
         return {
           date: moon.date,
           daysSinceFullMoon: moon.daysSinceFullMoon,
@@ -65,6 +72,10 @@ export function useJellyForecast() {
           windSpeed: weather?.windSpeed ?? null,
           isEasterly: weather?.isEasterly ?? null,
           windConfidence: (weather?.confidence ?? 'low') as DataConfidence,
+          dawnTideState: (tide?.dawnTideState ?? 'unknown') as TideState,
+          duskTideState: (tide?.duskTideState ?? 'unknown') as TideState,
+          tideConfidence: tide?.confidence === 'high' ? 'high' : 'low',
+          tideSourceNote: tide?.sourceNote ?? 'Tide forecast unavailable',
         }
       })
 

@@ -23,7 +23,7 @@ Important: Every architectural, structural change needs to be added as documenta
 server/api/
   moon.get.ts       → Fetches moon phase per day (FarmsenseMoon API, no key)
   weather.get.ts    → Fetches wind data for Bonaire (Open-Meteo, no key)
-  tidal.get.ts      → STUB — returns placeholder data, not yet implemented
+  tidal.get.ts      → Fetches sea-level tide signal for Bonaire (Open-Meteo Marine, no key)
 
 composables/
   useRiskCalculator.ts   → Pure logic. No API calls. Takes RiskInput[], returns DayRisk[]
@@ -45,6 +45,7 @@ pages/
 |-----|---------|-------------|-------|
 | [FarmsenseMoon](https://api.farmsense.net/v1/moonphases/) | Moon phase per unix timestamp | No | Unknown |
 | [Open-Meteo](https://api.open-meteo.com/v1/forecast) | Wind direction + speed for Bonaire | No | Free tier |
+| [Open-Meteo Marine](https://marine-api.open-meteo.com/v1/marine) | Hourly sea-level tide signal | No | Free tier |
 
 **Bonaire coordinates used:** `lat: 12.1696, lng: -68.2837` (west coast)
 
@@ -73,16 +74,17 @@ Window: **8–12 days post full moon**, 2–4 day active period.
 Easterly winds (45–135°) push man-o-war toward Bonaire's leeward (west) coast.
 Risk scales with wind speed. No forecast beyond 16 days → shown as "unknown".
 
-### Time of day (static modifiers on box jelly score)
+### Time of day (tide-informed modifiers on box jelly score)
 
 | Time | Modifier | Reason |
 |------|---------|--------|
-| Dawn | ×1.4 | Peak — high tide receding, jellies trapped inshore |
-| Dusk | ×1.2 | Crepuscular activity window |
+| Dawn | ×1.0–1.4 | Peak when tide is high or falling at dawn |
+| Dusk | ×1.2–1.3 | Crepuscular activity window; higher near low tide |
 | Night | ×1.0 | Spawning migration before moonrise |
 | Day | ×0.6 | Box jellies retreat to deeper water |
 
-> **TODO:** Replace static dawn modifier with tidal data when implemented.
+Tidal state is derived from Open-Meteo Marine hourly `sea_level_height_msl`.
+This is a gridded sea-level estimate, not navigation-grade tide data.
 
 ### Hazard score vs displayed likelihood
 
@@ -113,18 +115,17 @@ time-of-day-adjusted box jelly score or the siphonophore score.
 
 ---
 
-## Tidal integration (future)
+## Tidal integration
 
-When ready to add tidal data:
+`server/api/tidal.get.ts` fetches hourly `sea_level_height_msl` from Open-Meteo
+Marine for the requested date range. The route groups points by day, identifies
+local high/low tide extrema, and returns `dawnTideState` and `duskTideState`
+as `rising`, `falling`, `high`, `low`, or `unknown`.
 
-1. Implement `server/api/tidal.get.ts` — stub is already in place
-2. Add `TidalDay` fields to `RiskInput` in `useRiskCalculator.ts`
-3. Replace static dawn modifier (×1.4) with: `high tide receding at dawn → higher multiplier`
-4. Wire tidal fetch in `useJellyForecast.ts` (comment already present)
-
-Suggested providers:
-- [WorldTides](https://www.worldtides.info/api) — global, paid
-- [StormGlass](https://stormglass.io) — global tidal + marine data, free tier available
+The calculator uses tide state only for time-of-day box jelly modifiers:
+high/falling tide at dawn raises the dawn multiplier, and low tide near dusk
+raises the dusk multiplier. If tide data is unavailable, the model falls back
+to baseline dawn/dusk activity modifiers.
 
 ---
 
@@ -143,6 +144,10 @@ interface RiskInput {
   windSpeed: number | null
   isEasterly: boolean | null
   windConfidence: DataConfidence
+  dawnTideState: TideState
+  duskTideState: TideState
+  tideConfidence: 'high' | 'low'
+  tideSourceNote: string
 }
 
 interface DayRisk {
@@ -157,6 +162,7 @@ interface DayRisk {
   overallLevel: RiskLevel
   overallLikelihood: number
   timeOfDayRisks: TimeOfDayRisk[]
+  tideReason: string
   confidence: DataConfidence
   confidenceNote: string
 }
@@ -176,7 +182,7 @@ interface TimeOfDayRisk {
 ## Known limitations / future work
 
 - Moon phase data from FarmsenseMoon may need verification against a second source
-- Time-of-day modifiers are static rules, not tide-informed
+- Open-Meteo Marine tide data is approximate and not suitable for navigation
 - No historical validation against actual Bonaire jellyfish sighting data
 - Caching on server routes not yet implemented — add `useStorage` or Nitro cache layer
 - App is Bonaire-specific; coordinates are hardcoded in `server/api/weather.get.ts`
