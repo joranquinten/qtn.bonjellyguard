@@ -1,5 +1,5 @@
 <!-- components/RiskBadge.vue -->
-<!-- Displays a traffic-light risk level with optional percentage score -->
+<!-- Displays a traffic-light risk level with optional likelihood percentage -->
 <script setup lang="ts">
 import type { RiskLevel } from '~/composables/useRiskCalculator'
 

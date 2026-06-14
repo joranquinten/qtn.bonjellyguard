@@ -2,7 +2,7 @@
 <!-- Day-by-day forecast table with expandable time-of-day detail -->
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { DayRisk, RiskLevel } from '~/composables/useRiskCalculator'
+import type { DayRisk } from '~/composables/useRiskCalculator'
 
 defineProps<{
   days: DayRisk[]
@@ -24,17 +24,6 @@ function formatDate(date: string): string {
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1)
-}
-
-function adjustedScore(base: number, modifier: number): number {
-  return Math.min(100, Math.round(base * modifier))
-}
-
-function adjustedLevel(base: number, modifier: number): RiskLevel {
-  const score = adjustedScore(base, modifier)
-  if (score >= 60) return 'high'
-  if (score >= 30) return 'medium'
-  return 'low'
 }
 </script>
 
@@ -63,15 +52,15 @@ function adjustedLevel(base: number, modifier: number): RiskLevel {
               <span class="date-day">{{ formatDate(day.date) }}</span>
             </td>
             <td>
-              <RiskBadge :level="day.overallLevel" :score="day.overallScore" show-score />
+              <RiskBadge :level="day.overallLevel" :score="day.overallLikelihood" show-score />
             </td>
             <td>
-              <RiskBadge :level="day.boxJellyLevel" :score="day.boxJellyScore" show-score />
+              <RiskBadge :level="day.boxJellyLevel" :score="day.boxJellyLikelihood" show-score />
             </td>
             <td>
               <RiskBadge
                 :level="day.siphonophoreScore === 0 && day.siphonophoreReason.includes('unknown') ? 'unknown' : day.siphonophoreLevel"
-                :score="day.siphonophoreScore"
+                :score="day.siphonophoreLikelihood"
                 :show-score="!day.siphonophoreReason.includes('unknown')"
               />
             </td>
@@ -100,8 +89,8 @@ function adjustedLevel(base: number, modifier: number): RiskLevel {
                     >
                       <span class="tod-card__label">{{ capitalize(tod.timeOfDay) }}</span>
                       <RiskBadge
-                        :level="adjustedLevel(day.boxJellyScore, tod.boxJellyModifier)"
-                        :score="adjustedScore(day.boxJellyScore, tod.boxJellyModifier)"
+                        :level="tod.boxJellyLevel"
+                        :score="tod.boxJellyLikelihood"
                         show-score
                       />
                       <span class="tod-card__reason">{{ tod.reason }}</span>

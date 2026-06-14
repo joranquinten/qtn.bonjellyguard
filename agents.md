@@ -84,6 +84,23 @@ Risk scales with wind speed. No forecast beyond 16 days → shown as "unknown".
 
 > **TODO:** Replace static dawn modifier with tidal data when implemented.
 
+### Hazard score vs displayed likelihood
+
+The calculator keeps raw `0–100` scores as relative hazard indices for model weighting
+and `low` / `medium` / `high` thresholds. UI percentages should use calibrated
+likelihood fields instead:
+
+```ts
+likelihood = 35 * ((hazardScore / 100) ** 1.35)
+```
+
+This caps a perfect hazard score at about `35%` practical sting likelihood, because
+the model estimates favorable sting conditions rather than the probability that a
+specific swimmer will be stung.
+
+Daily `overallScore` is based on the strongest modeled source: the highest
+time-of-day-adjusted box jelly score or the siphonophore score.
+
 ---
 
 ## Data confidence
@@ -132,13 +149,25 @@ interface DayRisk {
   date: string
   boxJellyScore: number       // 0–100
   boxJellyLevel: RiskLevel
+  boxJellyLikelihood: number  // calibrated practical likelihood, 0–100
   siphonophoreScore: number   // 0–100
   siphonophoreLevel: RiskLevel
+  siphonophoreLikelihood: number
   overallScore: number
   overallLevel: RiskLevel
+  overallLikelihood: number
   timeOfDayRisks: TimeOfDayRisk[]
   confidence: DataConfidence
   confidenceNote: string
+}
+
+interface TimeOfDayRisk {
+  timeOfDay: TimeOfDay
+  boxJellyModifier: number
+  boxJellyScore: number
+  boxJellyLevel: RiskLevel
+  boxJellyLikelihood: number
+  reason: string
 }
 ```
 

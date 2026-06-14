@@ -21,6 +21,9 @@ export interface RiskInput {
 export interface TimeOfDayRisk {
   timeOfDay: TimeOfDay
   boxJellyModifier: number   // multiplier applied to base score
+  boxJellyScore: number      // adjusted hazard index, 0-100
+  boxJellyLevel: RiskLevel
+  boxJellyLikelihood: number // calibrated practical likelihood, 0-100
   reason: string
 }
 
@@ -30,16 +33,19 @@ export interface DayRisk {
   // Box jelly (lunar-driven)
   boxJellyScore: number          // 0–100
   boxJellyLevel: RiskLevel
+  boxJellyLikelihood: number     // calibrated practical likelihood, 0–100
   boxJellyReason: string
 
   // Siphonophore / man-o-war (wind-driven)
   siphonophoreScore: number      // 0–100
   siphonophoreLevel: RiskLevel
+  siphonophoreLikelihood: number // calibrated practical likelihood, 0–100
   siphonophoreReason: string
 
   // Combined worst-case
   overallScore: number
   overallLevel: RiskLevel
+  overallLikelihood: number      // calibrated practical likelihood, 0–100
 
   // Time-of-day breakdown
   timeOfDayRisks: TimeOfDayRisk[]
@@ -92,43 +98,78 @@ function calcSiphonophoreScore(
   return 90
 }
 
+// ─── Practical Likelihood Calibration ─────────────────────────────────────────
+// Raw scores are relative hazard indices. This curve converts them into a more
+// conservative user-facing estimate of practical sting likelihood.
+
+const MAX_PRACTICAL_STING_LIKELIHOOD = 35
+const LIKELIHOOD_CURVE = 1.35
+
+function hazardToLikelihood(hazardScore: number): number {
+  if (hazardScore <= 0) return 0
+
+  return Math.round(MAX_PRACTICAL_STING_LIKELIHOOD * ((hazardScore / 100) ** LIKELIHOOD_CURVE))
+}
+
 // ─── Time of Day Modifiers ────────────────────────────────────────────────────
 // Static rules based on crepuscular activity pattern + tidal note
 // When tidal data is available, dawn modifier should factor in receding tide
+
+function buildTimeOfDayRisk(
+  timeOfDay: TimeOfDay,
+  boxJellyScore: number,
+  boxJellyModifier: number,
+  reason: string
+): TimeOfDayRisk {
+  const adjustedScore = Math.min(100, Math.round(boxJellyScore * boxJellyModifier))
+
+  return {
+    timeOfDay,
+    boxJellyModifier,
+    boxJellyScore: adjustedScore,
+    boxJellyLevel: scoreToLevel(adjustedScore),
+    boxJellyLikelihood: hazardToLikelihood(adjustedScore),
+    reason
+  }
+}
 
 function getTimeOfDayRisks(boxJellyScore: number): TimeOfDayRisk[] {
   if (boxJellyScore < 20) {
     // Low lunar risk — time of day barely matters
     return [
-      { timeOfDay: 'dawn', boxJellyModifier: 1.0, reason: 'Low lunar activity' },
-      { timeOfDay: 'day', boxJellyModifier: 0.8, reason: 'Low lunar activity' },
-      { timeOfDay: 'dusk', boxJellyModifier: 1.0, reason: 'Low lunar activity' },
-      { timeOfDay: 'night', boxJellyModifier: 0.9, reason: 'Low lunar activity' },
+      buildTimeOfDayRisk('dawn', boxJellyScore, 1.0, 'Low lunar activity'),
+      buildTimeOfDayRisk('day', boxJellyScore, 0.8, 'Low lunar activity'),
+      buildTimeOfDayRisk('dusk', boxJellyScore, 1.0, 'Low lunar activity'),
+      buildTimeOfDayRisk('night', boxJellyScore, 0.9, 'Low lunar activity'),
     ]
   }
 
   return [
-    {
-      timeOfDay: 'dawn',
-      boxJellyModifier: 1.4,
-      reason: 'Peak risk — high tide receding at dawn pushes jellies inshore'
+    buildTimeOfDayRisk(
+      'dawn',
+      boxJellyScore,
+      1.4,
+      'Peak risk — high tide receding at dawn pushes jellies inshore'
       // TODO: refine with real tidal data
-    },
-    {
-      timeOfDay: 'day',
-      boxJellyModifier: 0.6,
-      reason: 'Lower activity — box jellies retreat to deeper water'
-    },
-    {
-      timeOfDay: 'dusk',
-      boxJellyModifier: 1.2,
-      reason: 'Elevated — crepuscular activity window'
-    },
-    {
-      timeOfDay: 'night',
-      boxJellyModifier: 1.0,
-      reason: 'Moderate — active spawning migration occurs before moonrise'
-    },
+    ),
+    buildTimeOfDayRisk(
+      'day',
+      boxJellyScore,
+      0.6,
+      'Lower activity — box jellies retreat to deeper water'
+    ),
+    buildTimeOfDayRisk(
+      'dusk',
+      boxJellyScore,
+      1.2,
+      'Elevated — crepuscular activity window'
+    ),
+    buildTimeOfDayRisk(
+      'night',
+      boxJellyScore,
+      1.0,
+      'Moderate — active spawning migration occurs before moonrise'
+    ),
   ]
 }
 
@@ -161,7 +202,9 @@ export function useRiskCalculator() {
       const siphonophoreScore = siphonophoreRaw === -1 ? 0 : siphonophoreRaw
       const siphonophoreUnknown = siphonophoreRaw === -1
 
-      const overallScore = Math.min(100, Math.max(boxJellyScore, siphonophoreScore))
+      const timeOfDayRisks = getTimeOfDayRisks(boxJellyScore)
+      const maxTimeOfDayBoxJellyScore = Math.max(...timeOfDayRisks.map((tod) => tod.boxJellyScore))
+      const overallScore = Math.min(100, Math.max(maxTimeOfDayBoxJellyScore, siphonophoreScore))
 
       const boxJellyReason = input.daysSinceFullMoon !== null
         ? `Day ${input.daysSinceFullMoon} after last full moon`
@@ -177,13 +220,16 @@ export function useRiskCalculator() {
         date: input.date,
         boxJellyScore,
         boxJellyLevel: scoreToLevel(boxJellyScore),
+        boxJellyLikelihood: hazardToLikelihood(boxJellyScore),
         boxJellyReason,
         siphonophoreScore,
         siphonophoreLevel: siphonophoreUnknown ? 'low' : scoreToLevel(siphonophoreScore),
+        siphonophoreLikelihood: siphonophoreUnknown ? 0 : hazardToLikelihood(siphonophoreScore),
         siphonophoreReason,
         overallScore,
         overallLevel: scoreToLevel(overallScore),
-        timeOfDayRisks: getTimeOfDayRisks(boxJellyScore),
+        overallLikelihood: hazardToLikelihood(overallScore),
+        timeOfDayRisks,
         confidence: input.windConfidence,
         confidenceNote: confidenceNote(input.windConfidence)
       }
