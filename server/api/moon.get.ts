@@ -3,6 +3,12 @@
 // Uses Open-Meteo moon phase data with a local lunar-cycle fallback
 
 import { defineEventHandler, getQuery, createError } from 'h3'
+import {
+  addCalendarDays,
+  compareCalendarDates,
+  getCalendarDateRange,
+  getTodayInTimeZone,
+} from '../utils/calendarDates'
 
 export interface MoonPhaseDay {
   date: string        // ISO date string YYYY-MM-DD
@@ -32,22 +38,11 @@ interface MoonCycleEstimate {
 }
 
 function getDateRange(startDate: string, endDate: string): string[] {
-  const dates: string[] = []
-  const current = new Date(startDate)
-  const end = new Date(endDate)
-  while (current <= end) {
-    dates.push(current.toISOString().slice(0, 10))
-    current.setDate(current.getDate() + 1)
-  }
-  return dates
+  return getCalendarDateRange(startDate, endDate)
 }
 
 function getMaxOpenMeteoForecastDate(): string {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  today.setDate(today.getDate() + 16)
-
-  return today.toISOString().slice(0, 10)
+  return addCalendarDays(getTodayInTimeZone(), 16)
 }
 
 function modulo(value: number, divisor: number): number {
@@ -115,9 +110,9 @@ function estimateMoonCycle(date: string): MoonCycleEstimate {
 async function fetchOpenMeteoMoonPhases(startDate: string, endDate: string): Promise<Record<string, MoonPhaseDay>> {
   const result: Record<string, MoonPhaseDay> = {}
   const maxForecastDate = getMaxOpenMeteoForecastDate()
-  const clippedEnd = new Date(endDate) > new Date(maxForecastDate) ? maxForecastDate : endDate
+  const clippedEnd = compareCalendarDates(endDate, maxForecastDate) > 0 ? maxForecastDate : endDate
 
-  if (new Date(startDate) > new Date(clippedEnd)) {
+  if (compareCalendarDates(startDate, clippedEnd) > 0) {
     return result
   }
 

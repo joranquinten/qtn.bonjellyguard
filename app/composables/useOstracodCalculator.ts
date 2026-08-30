@@ -1,6 +1,8 @@
 // composables/useOstracodCalculator.ts
 // Pure logic for ostracod occurrence windows — no API calls.
 
+import { resolveSunsetForOstracods } from '~/utils/bonaireSunset'
+
 export type OstracodProbability = 'high' | 'low'
 
 export interface OstracodInput {
@@ -46,12 +48,14 @@ export function useOstracodCalculator() {
     return inputs
       .map((input) => {
         const probability = probabilityForDay(input.daysSinceFullMoon)
-        if (!probability || !input.sunset) return null
+        if (!probability) return null
+
+        const sunset = resolveSunsetForOstracods(input.date, input.sunset)
 
         return {
           date: input.date,
           daysSinceFullMoon: input.daysSinceFullMoon,
-          peakTime: formatPeakTime(input.sunset),
+          peakTime: formatPeakTime(sunset),
           probability,
         }
       })

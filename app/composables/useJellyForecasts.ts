@@ -4,6 +4,7 @@
 import { ref, computed } from 'vue'
 import { useRiskCalculator, type DayRisk, type RiskInput, type DataConfidence, type TideState } from './useRiskCalculator'
 import { useOstracodCalculator, type OstracodDay } from './useOstracodCalculator'
+import { resolveSunsetForOstracods } from '~/utils/bonaireSunset'
 
 export interface ForecastState {
   loading: boolean
@@ -119,7 +120,7 @@ export function useJellyForecast() {
         moonData.map((moon) => ({
           date: moon.date,
           daysSinceFullMoon: normalizeDaysSinceFullMoon(moon),
-          sunset: weatherByDate[moon.date]?.sunset ?? null,
+          sunset: resolveSunsetForOstracods(moon.date, weatherByDate[moon.date]?.sunset),
         }))
       )
     } catch (e: any) {

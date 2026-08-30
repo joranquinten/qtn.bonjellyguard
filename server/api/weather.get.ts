@@ -3,6 +3,13 @@
 // Open-Meteo forecast: up to 16 days. Beyond that, no data available.
 
 import { defineEventHandler, getQuery, createError } from 'h3'
+import {
+  addCalendarDays,
+  compareCalendarDates,
+  getCalendarDateRange,
+  getTodayInTimeZone,
+} from '../utils/calendarDates'
+import { estimateBonaireSunsetLocalIso } from '~/utils/bonaireSunset'
 
 // Bonaire west coast coordinates (where diving happens)
 const BONAIRE_LAT = 12.1696
@@ -25,10 +32,10 @@ function isEasterlyWind(degrees: number): boolean {
 }
 
 function getConfidence(date: string): WindDataConfidence {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const target = new Date(date)
-  const diffDays = Math.floor((target.getTime() - today.getTime()) / 86400000)
+  const today = getTodayInTimeZone()
+  const diffDays = Math.floor(
+    (Date.parse(`${date}T12:00:00Z`) - Date.parse(`${today}T12:00:00Z`)) / 86400000
+  )
 
   if (diffDays <= 7) return 'high'
   if (diffDays <= 16) return 'medium'
@@ -44,24 +51,19 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'start and end query params required (YYYY-MM-DD)' })
   }
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const today = getTodayInTimeZone()
 
   // Open-Meteo only forecasts 16 days ahead — clip end date
-  const maxForecastDate = new Date(today)
-  maxForecastDate.setDate(maxForecastDate.getDate() + 16)
+  const maxForecastDate = addCalendarDays(today, 16)
 
-  const clippedEnd = new Date(endDate) > maxForecastDate
-    ? maxForecastDate.toISOString().slice(0, 10)
+  const clippedEnd = compareCalendarDates(endDate, maxForecastDate) > 0
+    ? maxForecastDate
     : endDate
 
   // Build result map with low-confidence placeholders for all dates first
   const result: Record<string, WindDay> = {}
-  const current = new Date(startDate)
-  const end = new Date(endDate)
 
-  while (current <= end) {
-    const dateStr = current.toISOString().slice(0, 10)
+  for (const dateStr of getCalendarDateRange(startDate, endDate)) {
     result[dateStr] = {
       date: dateStr,
       windDirection: null,
@@ -70,7 +72,6 @@ export default defineEventHandler(async (event) => {
       sunset: null,
       confidence: getConfidence(dateStr)
     }
-    current.setDate(current.getDate() + 1)
   }
 
   // Fetch from Open-Meteo for dates within forecast range
@@ -101,12 +102,18 @@ export default defineEventHandler(async (event) => {
         result[date].windDirection = directions[i] ?? null
         result[date].windSpeed = speeds[i] ?? null
         result[date].isEasterly = direction != null ? isEasterlyWind(direction) : null
-        result[date].sunset = sunsets[i] ?? null
+        result[date].sunset = sunsets[i] ?? estimateBonaireSunsetLocalIso(date)
       }
     }
   } catch (e) {
     // Return placeholders — UI will show low confidence
     console.error('Weather fetch failed:', e)
+  }
+
+  for (const dateStr of getCalendarDateRange(startDate, clippedEnd)) {
+    if (result[dateStr] && !result[dateStr].sunset) {
+      result[dateStr].sunset = estimateBonaireSunsetLocalIso(dateStr)
+    }
   }
 
   return Object.values(result)

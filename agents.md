@@ -132,7 +132,8 @@ daily `sunset` from `/api/weather` (Open-Meteo, `America/Kralendijk` timezone).
 
 Peak display time is **45 minutes after sundown**. The ostracod table only renders
 when at least one qualifying day falls within the user's selected date range.
-Days without sunset data (beyond the 16-day Open-Meteo forecast) are omitted.
+If Open-Meteo sunset is missing (e.g. stale CDN cache), a Bonaire sunset estimate
+is used so ostracod rows still appear within the 16-day forecast window.
 
 ---
 
