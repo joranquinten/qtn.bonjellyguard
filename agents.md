@@ -94,8 +94,15 @@ This is a gridded sea-level estimate, not navigation-grade tide data.
 ### Hazard score vs displayed likelihood
 
 The calculator keeps raw `0–100` scores as relative hazard indices for model weighting
-and `low` / `medium` / `high` thresholds. UI percentages should use calibrated
-likelihood fields instead:
+and `low` / `medium` / `high` thresholds:
+
+| Level | Hazard score |
+|-------|-------------|
+| low | 0–35 |
+| medium | 36–65 |
+| high | 66–100 |
+
+UI percentages should use calibrated likelihood fields instead:
 
 ```ts
 likelihood = 35 * ((hazardScore / 100) ** 1.35)

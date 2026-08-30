@@ -251,8 +251,8 @@ function getTimeOfDayRisks(
 // ─── Level Thresholds ─────────────────────────────────────────────────────────
 
 function scoreToLevel(score: number): RiskLevel {
-  if (score >= 60) return 'high'
-  if (score >= 30) return 'medium'
+  if (score >= 66) return 'high'
+  if (score >= 36) return 'medium'
   return 'low'
 }
 
