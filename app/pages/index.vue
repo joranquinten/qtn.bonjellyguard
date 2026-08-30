@@ -64,16 +64,22 @@ onMounted(() => loadForecast())
     </div>
 
     <!-- Results -->
-    <section v-if="hasData && !loading" class="results">
-      <ForecastTable :days="days" />
-      <OstracodTable v-if="hasOstracodData" :days="ostracodDays" />
-      <p class="results__legend">
-        Click any row to see time-of-day breakdown and forecast notes.
-      </p>
+    <section v-if="loading || hasData" class="results" :class="{ 'results--loading': loading }">
+      <template v-if="loading">
+        <TableSeaLoader />
+        <TableSeaLoader min-height="min(220px, 28vh)" />
+      </template>
+      <template v-else>
+        <ForecastTable :days="days" />
+        <OstracodTable v-if="hasOstracodData" :days="ostracodDays" />
+        <p class="results__legend">
+          Click any row to see time-of-day breakdown and forecast notes.
+        </p>
+      </template>
     </section>
 
     <!-- Empty / initial state -->
-    <div v-else-if="!loading && !error" class="empty-state">
+    <div v-else-if="!error" class="empty-state">
       <p>Select a date range and load the forecast to see jelly risk.</p>
     </div>
 
@@ -294,11 +300,17 @@ onMounted(() => loadForecast())
   overflow: auto;
   display: flex;
   flex-direction: column;
+  gap: 0.85rem;
   background: rgba(241, 235, 223, 0.96);
   border: 3px solid var(--color-ink);
   border-radius: 1.4rem;
   box-shadow: 7px 7px 0 rgba(5, 7, 6, 0.75);
   padding: clamp(0.75rem, 2vw, 1.25rem);
+}
+
+.results--loading {
+  background: rgba(4, 30, 49, 0.92);
+  gap: 0.75rem;
 }
 
 /* Results */
