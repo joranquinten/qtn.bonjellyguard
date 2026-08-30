@@ -7,6 +7,8 @@ const props = defineProps<{
   level: RiskLevel | 'unknown'
   score?: number
   showScore?: boolean
+  /** risk: low=green, high=red (default). positive: high=green, low=red. */
+  tone?: 'risk' | 'positive'
 }>()
 
 const label = computed(() => {
@@ -18,10 +20,17 @@ const label = computed(() => {
     default: return '·'
   }
 })
+
+const toneClass = computed(() => {
+  if (props.tone !== 'positive') return props.level
+  if (props.level === 'high') return 'low'
+  if (props.level === 'low') return 'high'
+  return props.level
+})
 </script>
 
 <template>
-  <span :class="['risk-badge', `risk-badge--${level}`]">
+  <span :class="['risk-badge', `risk-badge--${toneClass}`]">
     <span class="risk-badge__dot" aria-hidden="true" />
     <span class="risk-badge__label">{{ label }}</span>
     <span v-if="showScore" class="risk-badge__score">{{ score }}%</span>

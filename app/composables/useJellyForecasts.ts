@@ -3,11 +3,13 @@
 
 import { ref, computed } from 'vue'
 import { useRiskCalculator, type DayRisk, type RiskInput, type DataConfidence, type TideState } from './useRiskCalculator'
+import { useOstracodCalculator, type OstracodDay } from './useOstracodCalculator'
 
 export interface ForecastState {
   loading: boolean
   error: string | null
   days: DayRisk[]
+  ostracodDays: OstracodDay[]
 }
 
 function toISODate(date: Date): string {
@@ -52,12 +54,15 @@ function normalizeDaysSinceFullMoon(moon: any): number {
 
 export function useJellyForecast() {
   const { calculate } = useRiskCalculator()
+  const { calculate: calculateOstracods } = useOstracodCalculator()
 
   const loading = ref(false)
   const error = ref<string | null>(null)
   const days = ref<DayRisk[]>([])
+  const ostracodDays = ref<OstracodDay[]>([])
 
   const hasData = computed(() => days.value.length > 0)
+  const hasOstracodData = computed(() => ostracodDays.value.length > 0)
 
   async function fetch(startDate?: string, endDate?: string) {
     const range = defaultDateRange()
@@ -67,6 +72,7 @@ export function useJellyForecast() {
     loading.value = true
     error.value = null
     days.value = []
+    ostracodDays.value = []
 
     try {
       // Parallel fetch — moon, wind, and tide signals stay independent until model merge.
@@ -108,6 +114,14 @@ export function useJellyForecast() {
       })
 
       days.value = calculate(inputs)
+
+      ostracodDays.value = calculateOstracods(
+        moonData.map((moon) => ({
+          date: moon.date,
+          daysSinceFullMoon: normalizeDaysSinceFullMoon(moon),
+          sunset: weatherByDate[moon.date]?.sunset ?? null,
+        }))
+      )
     } catch (e: any) {
       error.value = e?.message ?? 'Failed to load forecast data'
     } finally {
@@ -119,7 +133,9 @@ export function useJellyForecast() {
     loading,
     error,
     days,
+    ostracodDays,
     hasData,
+    hasOstracodData,
     fetch,
     defaultDateRange,
   }

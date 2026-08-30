@@ -1,6 +1,6 @@
 <!-- pages/index.vue -->
  <script setup lang="ts">
-const { loading, error, days, hasData, fetch, defaultDateRange } = useJellyForecast()
+const { loading, error, days, ostracodDays, hasData, hasOstracodData, fetch, defaultDateRange } = useJellyForecast()
 
 const range = defaultDateRange()
 const startDate = ref(range.start)
@@ -66,6 +66,7 @@ onMounted(() => loadForecast())
     <!-- Results -->
     <section v-if="hasData && !loading" class="results">
       <ForecastTable :days="days" />
+      <OstracodTable v-if="hasOstracodData" :days="ostracodDays" />
       <p class="results__legend">
         Click any row to see time-of-day breakdown and forecast notes.
       </p>

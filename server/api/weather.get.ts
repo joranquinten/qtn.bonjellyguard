@@ -15,6 +15,7 @@ export interface WindDay {
   windDirection: number | null    // degrees (0–360), null if no data
   windSpeed: number | null        // km/h, null if no data
   isEasterly: boolean | null      // true if wind is from east (blows jellies west toward shore)
+  sunset: string | null           // local ISO datetime from Open-Meteo, e.g. 2026-08-31T18:45
   confidence: WindDataConfidence  // high = <7 days, medium = 7–16 days, low = >16 days
 }
 
@@ -66,6 +67,7 @@ export default defineEventHandler(async (event) => {
       windDirection: null,
       windSpeed: null,
       isEasterly: null,
+      sunset: null,
       confidence: getConfidence(dateStr)
     }
     current.setDate(current.getDate() + 1)
@@ -76,7 +78,7 @@ export default defineEventHandler(async (event) => {
     const url = new URL('https://api.open-meteo.com/v1/forecast')
     url.searchParams.set('latitude', String(BONAIRE_LAT))
     url.searchParams.set('longitude', String(BONAIRE_LNG))
-    url.searchParams.set('daily', 'wind_direction_10m_dominant,wind_speed_10m_max')
+    url.searchParams.set('daily', 'wind_direction_10m_dominant,wind_speed_10m_max,sunset')
     url.searchParams.set('wind_speed_unit', 'kmh')
     url.searchParams.set('start_date', startDate)
     url.searchParams.set('end_date', clippedEnd)
@@ -89,6 +91,7 @@ export default defineEventHandler(async (event) => {
     const dates: string[] = data.daily?.time ?? []
     const directions: number[] = data.daily?.wind_direction_10m_dominant ?? []
     const speeds: number[] = data.daily?.wind_speed_10m_max ?? []
+    const sunsets: string[] = data.daily?.sunset ?? []
 
     for (let i = 0; i < dates.length; i++) {
       const date = dates[i]
@@ -98,6 +101,7 @@ export default defineEventHandler(async (event) => {
         result[date].windDirection = directions[i] ?? null
         result[date].windSpeed = speeds[i] ?? null
         result[date].isEasterly = direction != null ? isEasterlyWind(direction) : null
+        result[date].sunset = sunsets[i] ?? null
       }
     }
   } catch (e) {

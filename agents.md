@@ -4,6 +4,7 @@
 
 Predicts jellyfish sting risk on Bonaire's west coast for a user-selected date range.
 Returns a day-by-day risk breakdown split by jellyfish type and time of day.
+Also shows ostracod bioluminescence windows when they fall within the selected range.
 
 Important: Every architectural, structural change needs to be added as documentation to this file!
 
@@ -22,19 +23,21 @@ Important: Every architectural, structural change needs to be added as documenta
 ```
 server/api/
   moon.get.ts       → Fetches moon phase from Open-Meteo; falls back to a local lunar-cycle estimate
-  weather.get.ts    → Fetches wind data for Bonaire (Open-Meteo, no key)
+  weather.get.ts    → Fetches wind + sunset for Bonaire (Open-Meteo, no key)
   tidal.get.ts      → Fetches sea-level tide signal for Bonaire (Open-Meteo Marine, no key)
 
 composables/
-  useRiskCalculator.ts   → Pure logic. No API calls. Takes RiskInput[], returns DayRisk[]
-  useJellyForecast.ts    → Orchestrator. Calls APIs, merges data, calls calculator.
+  useRiskCalculator.ts     → Pure logic. No API calls. Takes RiskInput[], returns DayRisk[]
+  useOstracodCalculator.ts → Pure logic. Lunar window + sunset → OstracodDay[]
+  useJellyForecast.ts      → Orchestrator. Calls APIs, merges data, calls calculators.
 
 components/
-  RiskBadge.vue     → Traffic light badge with optional % score
-  ForecastTable.vue → Day-by-day table with expandable time-of-day detail
+  RiskBadge.vue      → Traffic light badge with optional % score
+  ForecastTable.vue  → Day-by-day table with expandable time-of-day detail
+  OstracodTable.vue  → Ostracod occurrence table (conditional on date range)
 
 pages/
-  index.vue         → Single page app. Date picker + forecast table.
+  index.vue          → Single page app. Date picker + forecast + ostracod tables.
 ```
 
 ---
@@ -43,7 +46,7 @@ pages/
 
 | API | Purpose | Key required | Limit |
 |-----|---------|-------------|-------|
-| [Open-Meteo](https://api.open-meteo.com/v1/forecast) | Wind direction + speed for Bonaire | No | Free tier |
+| [Open-Meteo](https://api.open-meteo.com/v1/forecast) | Wind direction + speed + sunset for Bonaire | No | Free tier |
 | [Open-Meteo](https://api.open-meteo.com/v1/forecast) | Daily moon phase for the forecast window | No | Free tier |
 | [Open-Meteo Marine](https://marine-api.open-meteo.com/v1/marine) | Hourly sea-level tide signal | No | Free tier |
 
@@ -114,6 +117,20 @@ specific swimmer will be stung.
 
 Daily `overallScore` is based on the strongest modeled source: the highest
 time-of-day-adjusted box jelly score or the siphonophore score.
+
+### Ostracods (lunar + sunset-driven)
+
+Separate from jelly risk. Uses the same `daysSinceFullMoon` from `/api/moon` and
+daily `sunset` from `/api/weather` (Open-Meteo, `America/Kralendijk` timezone).
+
+| Days since full moon | Probability |
+|---------------------|-------------|
+| 2, 6 | low |
+| 3–5 | high |
+
+Peak display time is **45 minutes after sundown**. The ostracod table only renders
+when at least one qualifying day falls within the user's selected date range.
+Days without sunset data (beyond the 16-day Open-Meteo forecast) are omitted.
 
 ---
 
