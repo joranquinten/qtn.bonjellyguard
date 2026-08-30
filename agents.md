@@ -36,6 +36,7 @@ components/
   ForecastTable.vue  → Day-by-day table with expandable time-of-day detail
   OstracodTable.vue  → Ostracod occurrence table (conditional on date range)
   TableSeaLoader.vue → Sea-themed reserved loading state for forecast tables
+  SeaBubblesLayer.vue → Shared rising bubble animation (loader + ambient background)
 
 pages/
   index.vue          → Single page app. Date picker + forecast + ostracod tables.

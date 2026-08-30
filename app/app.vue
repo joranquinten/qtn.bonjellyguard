@@ -1,18 +1,11 @@
 <template>
-  <div>
-    <NuxtPage />
-    <div class="background-container">
-      <NuxtImg
-        src="/images/background.webp"
-        class="background"
-        sizes="100vw sm:100vw md:100vw lg:100vw xl:100vw"
-        densities="x1"
-        quality="35"
-        loading="eager"
-        fetchpriority="low"
-        alt=""
-        aria-hidden="true"
-      />
+  <div class="app-shell">
+    <div class="background-container" aria-hidden="true">
+      <div class="background-container__sea" />
+      <SeaBubblesLayer variant="ambient" />
+    </div>
+    <div class="app-shell__content">
+      <NuxtPage />
     </div>
   </div>
 </template>
@@ -33,16 +26,14 @@
 
 html {
   min-height: 100%;
-  background: var(--color-lagoon);
+  background: #041e31;
 }
 
 body {
   margin: 0;
   min-height: 100%;
   font-family: var(--font-body);
-  background:
-    radial-gradient(circle at top left, rgba(104, 173, 156, 0.5), transparent 34rem),
-    linear-gradient(160deg, var(--color-lagoon), #123d54);
+  background: #041e31;
   color: var(--color-ink);
 }
 
@@ -53,31 +44,33 @@ input {
 </style>
 
 <style scoped>
+.app-shell {
+  position: relative;
+  min-height: 100%;
+  isolation: isolate;
+}
+
+.app-shell__content {
+  position: relative;
+  z-index: 1;
+}
+
 .background-container {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #1E6083;
-  z-index: -1;
+  inset: 0;
+  background: #072a42;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
-.background-container::after {
-  content: "";
+.background-container__sea {
   position: absolute;
   inset: 0;
-  background: linear-gradient(160deg, rgba(30, 96, 131, 0.88), rgba(5, 7, 6, 0.45));
-}
-
-.background {
-  filter: blur(7px) saturate(0.8);
-  opacity: 0.42;
-  position: absolute;
-  inset: -10px;
-  width: calc(100% + 20px);
-  height: calc(100% + 20px);
-  object-fit: cover;
-  z-index: -1;
+  background:
+    radial-gradient(ellipse at 50% 115%, rgba(104, 173, 156, 0.14), transparent 58%),
+    radial-gradient(circle at 18% 82%, rgba(255, 255, 255, 0.03), transparent 28%),
+    radial-gradient(circle at 82% 68%, rgba(255, 255, 255, 0.025), transparent 24%),
+    linear-gradient(180deg, #0c3d5c 0%, #072a42 42%, #041e31 100%);
 }
 </style>
